@@ -6,6 +6,7 @@ const cloudinary = require('./utils/MediaUtils');
 const categoryRoute = require("./routes/Category")
 const userRoute = require("./routes/User")
 const channelRoute = require("./routes/Channel");
+const videoRoute = require("./routes/Video")
 
 const app = express()
 
@@ -34,6 +35,7 @@ mongoose
 app.use("/api/category", categoryRoute)
 app.use("/api/auth", userRoute)
 app.use("/api/channel", channelRoute)
+app.use("/api/video", videoRoute)
 
 app.post("/Image", async (req, res) => {
     const { public_id } = req.body;
