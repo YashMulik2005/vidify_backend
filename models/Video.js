@@ -37,6 +37,9 @@ const videoSchema = mongoose.Schema({
     video: {
         type: String
     },
+    public_id: {
+        type: String
+    },
     time: {
         type: Date,
         default: Date.now

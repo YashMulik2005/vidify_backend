@@ -3,7 +3,7 @@ const ChannelModel = require('../models/Channel');
 
 const addVideo = async (req, res) => {
     try {
-        const { title, description, thambnail, video, topic, channel } = req.body;
+        const { title, description, thambnail, video, topic, channel, public_id } = req.body;
         const existVideo = await videoModel.findOne({ title: title });
         if (existVideo) {
             return res.status(200).json({
@@ -18,7 +18,8 @@ const addVideo = async (req, res) => {
             thambnail,
             video,
             topic,
-            channel
+            channel,
+            public_id
         });
         const savedVideo = await newVideo.save();
 
@@ -57,5 +58,55 @@ const getVideoById = async (req, res) => {
     }
 }
 
+const deleteVideo = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const video = await videoModel.findById(id);
+        if (!video) {
+            return res.status(404).json({ status: false, msg: "Video not found" });
+        }
 
-module.exports = { addVideo, getVideos, getVideoById };
+        const channelId = video.channel;
+        await ChannelModel.findByIdAndUpdate(channelId, { $pull: { videos: id } });
+
+        await videoModel.findByIdAndDelete(id);
+
+        return res.status(200).json({ status: true, msg: "Video deleted successfully" });
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({ status: false, msg: "Internal Server Error" });
+    }
+}
+
+
+const updateVideo = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { title, description, topic } = req.body;
+
+        let video = await videoModel.findById(id);
+        if (!video) {
+            return res.status(404).json({ status: false, msg: "Video not found" });
+        }
+
+        if (title) {
+            video.title = title;
+        }
+        if (description) {
+            video.description = description;
+        }
+        if (topic) {
+            video.topic = topic;
+        }
+
+        video = await video.save();
+
+        return res.status(200).json({ status: true, msg: "Video updated successfully", data: video });
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({ status: false, msg: "Internal Server Error" });
+    }
+}
+
+
+module.exports = { addVideo, getVideos, getVideoById, deleteVideo, updateVideo };
