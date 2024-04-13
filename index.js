@@ -7,6 +7,8 @@ const categoryRoute = require("./routes/Category")
 const userRoute = require("./routes/User")
 const channelRoute = require("./routes/Channel");
 const videoRoute = require("./routes/Video")
+const commentRoute = require("./routes/Comment");
+const feedRoute = require("./routes/Feed")
 
 const app = express()
 
@@ -36,6 +38,9 @@ app.use("/api/category", categoryRoute)
 app.use("/api/auth", userRoute)
 app.use("/api/channel", channelRoute)
 app.use("/api/video", videoRoute)
+app.use("/api/comment", commentRoute)
+app.use("/api/feed", feedRoute)
+
 
 app.post("/Image", async (req, res) => {
     const { public_id } = req.body;

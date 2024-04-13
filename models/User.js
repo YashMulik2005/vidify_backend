@@ -30,7 +30,11 @@ const UserSchema = mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Channel',
         default: null
-    }
+    },
+    subscribed: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Channel'
+    }]
 })
 
 const UserModel = mongoose.model("User", UserSchema);

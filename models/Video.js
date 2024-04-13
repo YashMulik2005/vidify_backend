@@ -22,16 +22,10 @@ const videoSchema = mongoose.Schema({
         ref: 'User'
     }],
     comments: [{
-        text: {
-            type: String,
-            required: true
-        },
-        time: {
-            type: Date,
-            default: Date.now
-        }
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Comment'
     }],
-    thambnail: {
+    thumbnail: {
         type: String,
     },
     video: {

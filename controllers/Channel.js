@@ -62,4 +62,48 @@ const getOneChannel = async (req, res) => {
     }
 }
 
-module.exports = { createChannel, getAllChannels, getOneChannel } 
+const subscribe = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const { channelId } = req.body;
+
+        const c = await ChannelModel.findByIdAndUpdate(
+            channelId,
+            { $push: { subscribers: userId } }
+        );
+
+        const u = await UserModel.findByIdAndUpdate(
+            userId,
+            { $push: { subscribed: channelId } }
+        );
+
+        return res.status(200).json({ status: true, msg: "Subscribed successfully" });
+    } catch (error) {
+        console.error("Error subscribing:", error);
+        return res.status(500).json({ status: false, error: "Failed to subscribe" });
+    }
+}
+
+const unsubscribe = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const { channelId } = req.body;
+
+        await ChannelModel.findByIdAndUpdate(
+            channelId,
+            { $pull: { subscribers: userId } }
+        );
+
+        await UserModel.findByIdAndUpdate(
+            userId,
+            { $pull: { subscribed: channelId } }
+        );
+
+        return res.status(200).json({ status: true, msg: "Unsubscribed successfully" });
+    } catch (error) {
+        console.error("Error unsubscribing:", error);
+        return res.status(500).json({ status: false, error: "Failed to unsubscribe" });
+    }
+}
+
+module.exports = { createChannel, getAllChannels, getOneChannel, subscribe, unsubscribe };

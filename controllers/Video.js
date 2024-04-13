@@ -108,5 +108,55 @@ const updateVideo = async (req, res) => {
     }
 }
 
+const like = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const { videoId } = req.body;
 
-module.exports = { addVideo, getVideos, getVideoById, deleteVideo, updateVideo };
+        await videoModel.findByIdAndUpdate(videoId, { $push: { likes: userId } });
+
+        return res.status(200).json({ status: true, msg: "Liked successfully" });
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({
+            status: false,
+            msg: "Internal Server Error"
+        });
+    }
+};
+
+const unlike = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const { videoId } = req.body;
+
+        await videoModel.findByIdAndUpdate(videoId, { $pull: { likes: userId } });
+
+        return res.status(200).json({ status: true, msg: "Unliked successfully" });
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({
+            status: false,
+            msg: "Internal Server Error"
+        });
+    }
+};
+
+const getVideosByChannel = async (req, res) => {
+    try {
+        const { channelId } = req.params;
+        const channel = await ChannelModel.findById(channelId);
+        if (!channel) {
+            return res.status(404).json({ status: false, msg: "Channel not found" });
+        }
+
+        const videos = await videoModel.find({ channel: channelId });
+        return res.status(200).json({ status: true, data: videos });
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({ status: false, msg: "Internal Server Error" });
+    }
+}
+
+module.exports = { addVideo, getVideos, getVideoById, deleteVideo, updateVideo, like, unlike, getVideosByChannel };
+
