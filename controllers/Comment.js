@@ -89,7 +89,7 @@ const unpinComment = async (req, res) => {
 const getCommentById = async (req, res) => {
     try {
         const { commentId } = req.params;
-        const comment = await Comment.findById(commentId);
+        const comment = await Comment.findById(commentId).populate('user');
         if (!comment) {
             return res.status(404).json({ status: false, msg: "Comment not found" });
         }

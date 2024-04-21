@@ -50,7 +50,7 @@ const getAllChannels = async (req, res) => {
 const getOneChannel = async (req, res) => {
     try {
         const { id } = req.params;
-        const channel = await ChannelModel.findById(id);
+        const channel = await ChannelModel.findById(id).populate('videos');
 
         if (!channel) {
             return res.status(404).json({ status: false, error: "Channel not found" });

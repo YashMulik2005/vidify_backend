@@ -1,7 +1,7 @@
 const express = require("express")
 const router = express.Router();
 
-const { addVideo, getVideos, getVideoById, deleteVideo, updateVideo, like, unlike, getVideosByChannel } = require("../controllers/Video")
+const { addVideo, getVideos, getVideoById, deleteVideo, updateVideo, like, unlike, getVideosByChannel, addviews } = require("../controllers/Video")
 const { verifyToken } = require("../utils/AuthUtils")
 
 router.post("/addVideo", verifyToken, addVideo)
@@ -13,5 +13,6 @@ router.get("/channel/:channelId", verifyToken, getVideosByChannel);
 
 router.get("/getvideos", getVideos)
 router.get("/getvideo/:id", getVideoById)
+router.post("/views", addviews)
 
 module.exports = router

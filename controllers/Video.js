@@ -1,9 +1,11 @@
 const videoModel = require("../models/Video")
 const ChannelModel = require('../models/Channel');
+const applyPagination = require("../utils/DataUtils")
 
 const addVideo = async (req, res) => {
     try {
         const { title, description, thambnail, video, topic, channel, public_id } = req.body;
+        console.log(thambnail);
         const existVideo = await videoModel.findOne({ title: title });
         if (existVideo) {
             return res.status(200).json({
@@ -15,7 +17,7 @@ const addVideo = async (req, res) => {
         const newVideo = new videoModel({
             title,
             description,
-            thambnail,
+            thumbnail: thambnail,
             video,
             topic,
             channel,
@@ -36,18 +38,27 @@ const addVideo = async (req, res) => {
 
 const getVideos = async (req, res) => {
     try {
-        const videos = await videoModel.find();
-        return res.status(200).json({ status: true, data: videos });
+        const page = parseInt(req.query.page) || 1;
+
+        const videos = await videoModel.find().populate('channel', 'name profile_image').sort({ time: -1 });
+        const paginatedData = applyPagination(videos, page)
+
+        return res.status(200).json(
+            {
+                status: true,
+                response: paginatedData
+            });
     } catch (err) {
-        console.log(err);
-        return res.status(400).json({ status: false, msg: err });
+        console.error(err);
+        return res.status(500).json({ status: false, msg: "Internal Server Error" });
     }
 }
+
 
 const getVideoById = async (req, res) => {
     try {
         const { id } = req.params;
-        const video = await videoModel.findById(id);
+        const video = await videoModel.findById(id).populate('channel');
         if (!video) {
             return res.status(404).json({ status: false, msg: "Video not found" });
         }
@@ -150,7 +161,7 @@ const getVideosByChannel = async (req, res) => {
             return res.status(404).json({ status: false, msg: "Channel not found" });
         }
 
-        const videos = await videoModel.find({ channel: channelId });
+        const videos = await videoModel.find({ channel: channelId }).populate('channel', 'name profile_image');
         return res.status(200).json({ status: true, data: videos });
     } catch (err) {
         console.error(err);
@@ -158,5 +169,28 @@ const getVideosByChannel = async (req, res) => {
     }
 }
 
-module.exports = { addVideo, getVideos, getVideoById, deleteVideo, updateVideo, like, unlike, getVideosByChannel };
+const addviews = async (req, res) => {
+    try {
+        const { videoId } = req.body;
+        if (!videoId) {
+            return res.status(400).json({ status: false, msg: "Video ID is required" });
+        }
+
+        const updatedVideo = await videoModel.findByIdAndUpdate(
+            videoId,
+            { $inc: { views: 1 } }
+        );
+
+        if (!updatedVideo) {
+            return res.status(404).json({ status: false, msg: "Video not found" });
+        }
+
+        return res.status(200).json({ status: true, msg: "Views incremented successfully" });
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({ status: false, msg: "Internal Server Error" });
+    }
+}
+
+module.exports = { addVideo, getVideos, getVideoById, deleteVideo, updateVideo, like, unlike, getVideosByChannel, addviews };
 

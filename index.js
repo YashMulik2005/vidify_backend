@@ -19,7 +19,7 @@ app.use(cors({
 }))
 //P9VUkCb4OBxGlc3r
 mongoose.set("strictQuery", false);
-var db = "mongodb+srv://yashmulik95:P9VUkCb4OBxGlc3r@cluster0.grtirmv.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0";
+var db = "";
 
 mongoose
     .connect(db, {

@@ -34,6 +34,10 @@ const videoSchema = mongoose.Schema({
     public_id: {
         type: String
     },
+    views: {
+        type: Number,
+        default: 0
+    },
     time: {
         type: Date,
         default: Date.now
