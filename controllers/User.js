@@ -1,4 +1,7 @@
 const UserModel = require("../models/User");
+const WatchHistoryModel = require('../models/WatchHistory');
+const applyPagination = require("../utils/DataUtils")
+
 const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
 const dotenv = require("dotenv")
@@ -121,5 +124,51 @@ const getUserById = async (req, res) => {
     }
 };
 
-module.exports = { login, signup, getuserDetails, refreshToken, getUserById };
+const getuser = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const data = await UserModel.findOne({ _id: userId }).populate('channel', 'name profile_image subscribers').populate('interested_area');
+
+        if (!data) {
+            return res.status(404).json({ status: false, msg: "User not found" });
+        }
+
+        return res.status(200).json({ status: true, data: data });
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({ status: false, msg: "Internal Server Error" });
+    }
+}
+
+const getWatchedVideosByUser = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const page = req.query.page || 1;
+        const limit = req.query.limit || 4;
+        let watchHistory = await WatchHistoryModel.find({ user: userId })
+            .populate({
+                path: 'video',
+                select: 'thumbnail time views title',
+                populate: { path: 'channel', select: 'name profile_image' }
+            })
+            .sort({ watchedAt: -1 });
+
+        watchHistory = watchHistory.filter((item, index, self) =>
+            index === self.findIndex((t) => (
+                t.video._id.toString() === item.video._id.toString()
+            ))
+        );
+
+        const paginatedData = applyPagination(watchHistory, page, limit);
+
+        return res.status(200).json({ status: true, response: paginatedData });
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({ status: false, msg: "Internal Server Error" });
+    }
+}
+
+
+
+module.exports = { login, signup, getuserDetails, refreshToken, getUserById, getuser, getWatchedVideosByUser };
 

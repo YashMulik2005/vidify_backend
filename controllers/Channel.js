@@ -1,6 +1,6 @@
 const ChannelModel = require('../models/Channel');
 const UserModel = require('../models/User');
-
+const applyPagination = require("../utils/DataUtils")
 
 const createChannel = async (req, res) => {
     try {
@@ -62,6 +62,21 @@ const getOneChannel = async (req, res) => {
     }
 }
 
+const subscribedChannel = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const channel = await ChannelModel.findById(id, 'name profile_image');
+
+        if (!channel) {
+            return res.status(404).json({ status: false, error: "Channel not found" });
+        }
+        return res.status(200).json({ status: true, data: channel });
+    } catch (error) {
+        console.error("Error fetching channel:", error);
+        return res.status(500).json({ status: false, error: "Failed to fetch channel" });
+    }
+}
+
 const subscribe = async (req, res) => {
     try {
         const userId = req.user.id;
@@ -106,4 +121,37 @@ const unsubscribe = async (req, res) => {
     }
 }
 
-module.exports = { createChannel, getAllChannels, getOneChannel, subscribe, unsubscribe };
+const search = async (req, res) => {
+    const { search } = req.body;
+    const page = req.query.page || 1;
+    try {
+        const result = await ChannelModel.find({
+            name: { $regex: ".*" + search + ".*", $options: "i" },
+        })
+
+        const paginatedData = applyPagination(result, page);
+        return res.status(200).json({ status: true, response: paginatedData });
+    } catch (err) {
+        console.log(err);
+        res.status(400).json({
+            data: { error: err },
+        });
+    }
+}
+
+const suggestSearch = async (req, res) => {
+    const { search } = req.body;
+    try {
+        const result = await ChannelModel.find({
+            name: { $regex: ".*" + search + ".*", $options: "i" },
+        }, { name: 1 });
+
+        return res.status(200).json({ status: true, response: result });
+    } catch (err) {
+        res.status(400).json({
+            data: { error: err },
+        });
+    }
+}
+
+module.exports = { createChannel, getAllChannels, getOneChannel, subscribe, unsubscribe, subscribedChannel, search, suggestSearch };

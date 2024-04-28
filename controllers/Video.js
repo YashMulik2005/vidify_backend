@@ -1,5 +1,6 @@
 const videoModel = require("../models/Video")
 const ChannelModel = require('../models/Channel');
+const WatchHistoryModel = require('../models/WatchHistory');
 const applyPagination = require("../utils/DataUtils")
 
 const addVideo = async (req, res) => {
@@ -39,20 +40,27 @@ const addVideo = async (req, res) => {
 const getVideos = async (req, res) => {
     try {
         const page = parseInt(req.query.page) || 1;
+        const topic = req.query.topic;
 
-        const videos = await videoModel.find().populate('channel', 'name profile_image').sort({ time: -1 });
-        const paginatedData = applyPagination(videos, page)
+        let query = {};
 
-        return res.status(200).json(
-            {
-                status: true,
-                response: paginatedData
-            });
+        if (topic) {
+            query.topic = topic;
+        }
+
+        const videos = await videoModel.find(query).populate('channel', 'name profile_image').sort({ time: -1 });
+        const paginatedData = applyPagination(videos, page);
+
+        return res.status(200).json({
+            status: true,
+            response: paginatedData
+        });
     } catch (err) {
         console.error(err);
         return res.status(500).json({ status: false, msg: "Internal Server Error" });
     }
 }
+
 
 
 const getVideoById = async (req, res) => {
@@ -155,14 +163,17 @@ const unlike = async (req, res) => {
 
 const getVideosByChannel = async (req, res) => {
     try {
+        const page = req.query.page || 1;
         const { channelId } = req.params;
         const channel = await ChannelModel.findById(channelId);
         if (!channel) {
             return res.status(404).json({ status: false, msg: "Channel not found" });
         }
 
-        const videos = await videoModel.find({ channel: channelId }).populate('channel', 'name profile_image');
-        return res.status(200).json({ status: true, data: videos });
+        const videos = await videoModel.find({ channel: channelId }).populate('channel', 'name profile_image').sort({ time: -1 });
+
+        const paginatedData = applyPagination(videos, page)
+        return res.status(200).json({ status: true, response: paginatedData });
     } catch (err) {
         console.error(err);
         return res.status(500).json({ status: false, msg: "Internal Server Error" });
@@ -192,5 +203,63 @@ const addviews = async (req, res) => {
     }
 }
 
-module.exports = { addVideo, getVideos, getVideoById, deleteVideo, updateVideo, like, unlike, getVideosByChannel, addviews };
+const addWatchHistory = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const { videoId } = req.body;
+
+        const existingWatchHistory = await WatchHistoryModel.findOne({ user: userId, video: videoId });
+
+        if (existingWatchHistory) {
+            existingWatchHistory.watchedAt = Date.now();
+            await existingWatchHistory.save();
+            return res.status(200).json({ status: true, msg: "Watch history updated successfully" });
+        } else {
+            const newWatchHistory = new WatchHistoryModel({
+                user: userId,
+                video: videoId,
+                watchedAt: Date.now()
+            });
+            await newWatchHistory.save();
+            return res.status(201).json({ status: true, msg: "Watch history added successfully" });
+        }
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({ status: false, msg: "Internal Server Error" });
+    }
+}
+
+const search = async (req, res) => {
+    const { search } = req.body;
+    const page = req.query.page || 1;
+    try {
+        const result = await videoModel.find({
+            title: { $regex: ".*" + search + ".*", $options: "i" },
+        }).populate('channel', 'name profile_image');
+
+        const paginatedData = applyPagination(result, page);
+        return res.status(200).json({ status: true, response: paginatedData });
+    } catch (err) {
+        res.status(400).json({
+            data: { error: err },
+        });
+    }
+}
+
+const suggestSearch = async (req, res) => {
+    const { search } = req.body;
+    try {
+        const result = await videoModel.find({
+            title: { $regex: ".*" + search + ".*", $options: "i" },
+        }, { title: 1 });
+
+        return res.status(200).json({ status: true, response: result });
+    } catch (err) {
+        res.status(400).json({
+            data: { error: err },
+        });
+    }
+}
+
+module.exports = { addVideo, getVideos, getVideoById, deleteVideo, updateVideo, like, unlike, getVideosByChannel, addviews, addWatchHistory, search, suggestSearch };
 

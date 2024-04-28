@@ -60,15 +60,21 @@ const videoFeed = async (req, res) => {
         const subscribedChannels = user.subscribed;
 
         const videosByInterest = await videoModel.find({ topic: { $in: interested } }).populate('channel', 'name profile_image');
-
         const videosBySubscription = await videoModel.find({ channel: { $in: subscribedChannels } }).populate('channel', 'name profile_image');
 
-        const videoSet = new Set([...videosByInterest, ...videosBySubscription]);
-        const uniqueVideos = Array.from(videoSet);
+        const uniqueVideosMap = {};
+        const addVideosToMap = (videos) => {
+            videos.forEach(video => {
+                uniqueVideosMap[video._id] = video;
+            });
+        };
+        addVideosToMap(videosByInterest);
+        addVideosToMap(videosBySubscription);
 
+        const uniqueVideos = Object.values(uniqueVideosMap);
         uniqueVideos.sort((a, b) => b.time - a.time);
 
-        const paginatedData = applyPagination(uniqueVideos, page)
+        const paginatedData = applyPagination(uniqueVideos, page);
 
         return res.status(200).json({ status: true, response: paginatedData });
     } catch (err) {
@@ -76,5 +82,6 @@ const videoFeed = async (req, res) => {
         return res.status(500).json({ status: false, msg: "Internal Server Error" });
     }
 }
+
 
 module.exports = { getSubscribedData, getRelatedVideos, videoFeed };
