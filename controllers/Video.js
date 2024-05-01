@@ -42,9 +42,10 @@ const getVideos = async (req, res) => {
         const page = parseInt(req.query.page) || 1;
         const topic = req.query.topic;
 
+
         let query = {};
 
-        if (topic) {
+        if (topic && topic !== "all") {
             query.topic = topic;
         }
 

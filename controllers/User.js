@@ -168,7 +168,45 @@ const getWatchedVideosByUser = async (req, res) => {
     }
 }
 
+const editUserCategory = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const { category } = req.body;
+        const user = await UserModel.findById(userId);
+
+        if (!user) {
+            return res.status(404).json({ status: false, msg: "User not found" });
+        }
+        user.interested_area = category;
+        await user.save();
+
+        return res.status(200).json({ status: true, msg: "User category updated successfully" });
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({ status: false, msg: "Internal Server Error" });
+    }
+};
+
+const editProfileImage = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const { profile } = req.body;
+        const user = await UserModel.findById(userId);
+
+        if (!user) {
+            return res.status(404).json({ status: false, msg: "User not found" });
+        }
+        user.profile_image = profile;
+        await user.save();
+
+        return res.status(200).json({ status: true, msg: "Profile Image updated successfully" });
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({ status: false, msg: "Internal Server Error" });
+    }
+};
 
 
-module.exports = { login, signup, getuserDetails, refreshToken, getUserById, getuser, getWatchedVideosByUser };
+
+module.exports = { login, signup, getuserDetails, refreshToken, getUserById, getuser, getWatchedVideosByUser, editUserCategory, editProfileImage };
 

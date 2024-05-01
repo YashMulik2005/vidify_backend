@@ -22,6 +22,10 @@ const UserSchema = mongoose.Schema({
         type: String,
         required: true
     },
+    profile_image: {
+        type: String,
+        default: null
+    },
     interested_area: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Category'
