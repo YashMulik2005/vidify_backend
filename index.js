@@ -42,7 +42,7 @@ app.use("/api/comment", commentRoute)
 app.use("/api/feed", feedRoute)
 
 
-app.post("/Image", async (req, res) => {
+app.post("/api/Image", async (req, res) => {
     const { public_id } = req.body;
     try {
         const hls_url = cloudinary.url(public_id, {
