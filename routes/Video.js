@@ -9,7 +9,7 @@ router.delete("/deletevideo/:id", verifyToken, deleteVideo)
 router.put("/updatevideo/:id", verifyToken, updateVideo)
 router.post("/like", verifyToken, like)
 router.post("/unlike", verifyToken, unlike)
-router.get("/channel/:channelId", verifyToken, getVideosByChannel);
+router.get("/channel/:channelId", getVideosByChannel);
 router.post("/watchHistory", verifyToken, addWatchHistory)
 
 router.get("/getvideos", getVideos)

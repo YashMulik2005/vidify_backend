@@ -23,8 +23,9 @@ const addCategory = async (req, res) => {
 }
 
 const getCategory = async (req, res) => {
+    const search = req.query.search;
     try {
-        const category = await CategoryModel.find({});
+        const category = await CategoryModel.find({ name: { $regex: ".*" + search + ".*", $options: "i" }, });
         return res.status(200).json({
             data: { category }
         })

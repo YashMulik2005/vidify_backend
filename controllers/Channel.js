@@ -35,11 +35,13 @@ const createChannel = async (req, res) => {
 
 
 const getAllChannels = async (req, res) => {
+    const page = req.query.page || 1;
     try {
         const channels = await ChannelModel.find();
+        const paginatedData = applyPagination(channels, page)
         return res.status(200).json({
             status: true,
-            data: channels
+            response: paginatedData
         });
     } catch (error) {
         console.error("Error fetching channels:", error);
@@ -154,4 +156,62 @@ const suggestSearch = async (req, res) => {
     }
 }
 
-module.exports = { createChannel, getAllChannels, getOneChannel, subscribe, unsubscribe, subscribedChannel, search, suggestSearch };
+const editChannelProfile = async (req, res) => {
+    try {
+        const { profile, channelId } = req.body;
+        const channel = await ChannelModel.findById(channelId);
+
+        if (!channel) {
+            return res.status(404).json({ status: false, msg: "Channel not found" });
+        }
+        channel.profile_image = profile;
+        await channel.save();
+
+        return res.status(200).json({ status: true, msg: "Profile Image updated successfully" });
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({ status: false, msg: "Internal Server Error" });
+    }
+};
+
+const editChannelBanner = async (req, res) => {
+    try {
+        const { banner, channelId } = req.body;
+        const channel = await ChannelModel.findById(channelId);
+
+        if (!channel) {
+            return res.status(404).json({ status: false, msg: "channel not found" });
+        }
+        channel.banner_image = banner;
+        await channel.save();
+
+        return res.status(200).json({ status: true, msg: "Banner Image updated successfully" });
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({ status: false, msg: "Internal Server Error" });
+    }
+};
+
+const editChannelDetails = async (req, res) => {
+    try {
+        const { name, description, categories, channelId } = req.body;
+        const channel = await ChannelModel.findById(channelId);
+
+        if (!channel) {
+            return res.status(404).json({ status: false, msg: "Channel not found" });
+        }
+
+        channel.name = name;
+        channel.description = description;
+        channel.categories = categories;
+
+        await channel.save();
+
+        return res.status(200).json({ status: true, msg: "Channel details updated successfully" });
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({ status: false, msg: "Internal Server Error" });
+    }
+};
+
+module.exports = { createChannel, getAllChannels, getOneChannel, subscribe, unsubscribe, subscribedChannel, search, suggestSearch, editChannelProfile, editChannelBanner, editChannelDetails };

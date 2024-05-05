@@ -165,6 +165,7 @@ const unlike = async (req, res) => {
 const getVideosByChannel = async (req, res) => {
     try {
         const page = req.query.page || 1;
+        const limit = req.query.limit || 8;
         const { channelId } = req.params;
         const channel = await ChannelModel.findById(channelId);
         if (!channel) {
@@ -173,7 +174,7 @@ const getVideosByChannel = async (req, res) => {
 
         const videos = await videoModel.find({ channel: channelId }).populate('channel', 'name profile_image').sort({ time: -1 });
 
-        const paginatedData = applyPagination(videos, page)
+        const paginatedData = applyPagination(videos, page, limit)
         return res.status(200).json({ status: true, response: paginatedData });
     } catch (err) {
         console.error(err);
