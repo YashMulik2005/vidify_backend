@@ -1,4 +1,4 @@
-const applyPagination = (data, page, limit = 8) => {
+const applyPagination = (data, page, limit = 12) => {
     // const limit = 8;
     const startIndex = (page - 1) * limit;
     const endIndex = startIndex + limit;
